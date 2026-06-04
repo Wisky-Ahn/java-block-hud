@@ -1,0 +1,158 @@
+{
+  "hotbar" : [ {
+    "slot" : 10,
+    "label" : "인벤토리",
+    "action" : {
+      "type" : "internal",
+      "target" : "_OPEN_INVENTORY_"
+    },
+    "image" : "more.png",
+    "qty" : 0,
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 8,
+    "label" : "메모장",
+    "action" : {
+      "type" : "launch",
+      "target" : "notepad.exe"
+    },
+    "image" : "Compass.png",
+    "qty" : 0,
+    "offset" : {
+      "x" : 0,
+      "y" : 2,
+      "size" : 0
+    },
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 3,
+    "label" : "구글",
+    "action" : {
+      "type" : "url",
+      "target" : "https://www.google.com"
+    },
+    "image" : "chrome.png",
+    "qty" : 0,
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 7,
+    "label" : "파일 탐색기",
+    "action" : {
+      "type" : "launch",
+      "target" : "explorer.exe"
+    },
+    "image" : "Infested_Cobblestone.png",
+    "qty" : 20,
+    "offset" : {
+      "x" : 0,
+      "y" : 0,
+      "size" : -2
+    },
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 6,
+    "label" : "그림판",
+    "action" : {
+      "type" : "launch",
+      "target" : "mspaint.exe"
+    },
+    "image" : "Water_Bucket.png",
+    "qty" : 0,
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 1,
+    "label" : "내 컴퓨터",
+    "action" : {
+      "type" : "wellKnown",
+      "target" : "THIS_PC"
+    },
+    "image" : "Computer.png",
+    "qty" : 0,
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 2,
+    "label" : "휴지통",
+    "action" : {
+      "type" : "wellKnown",
+      "target" : "RECYCLE_BIN"
+    },
+    "image" : "Trash.png",
+    "qty" : 0,
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 5,
+    "label" : "계산기",
+    "action" : {
+      "type" : "launch",
+      "target" : "calc.exe"
+    },
+    "image" : "Cooked_Beef.png",
+    "qty" : 4,
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 9,
+    "label" : "개발자 링크트리",
+    "action" : {
+      "type" : "url",
+      "target" : "https://litt.ly/dmeloper"
+    },
+    "image" : "Potion_Water.png",
+    "qty" : 0,
+    "confirmBeforeRun" : false
+  }, {
+    "slot" : 4,
+    "label" : "다운로드 폴더",
+    "action" : {
+      "type" : "wellKnown",
+      "target" : "DOWNLOADS"
+    },
+    "image" : "torch.png",
+    "qty" : 8,
+    "confirmBeforeRun" : false
+  } ],
+  "inventory" : [ {
+    "col" : 2,
+    "row" : 2,
+    "label" : "철괴",
+    "action" : {
+      "type" : "url",
+      "target" : "https://ko.minecraft.wiki/w/%EC%B2%A0_%EC%A3%BC%EA%B4%B4"
+    },
+    "image" : "Iron_Ingot.png",
+    "qty" : 32,
+    "confirmBeforeRun" : false
+  }, {
+    "col" : 1,
+    "row" : 2,
+    "label" : "석탄",
+    "action" : {
+      "type" : "url",
+      "target" : "https://ko.minecraft.wiki/w/%EC%84%9D%ED%83%84"
+    },
+    "image" : "Coal.png",
+    "qty" : 6,
+    "confirmBeforeRun" : false
+  }, {
+    "col" : 3,
+    "row" : 2,
+    "label" : "금 주괴",
+    "action" : {
+      "type" : "url",
+      "target" : "https://ko.minecraft.wiki/w/%EA%B8%88_%EC%A3%BC%EA%B4%B4"
+    },
+    "image" : "Gold_Ingot.png",
+    "qty" : 8,
+    "confirmBeforeRun" : false
+  }, {
+    "col" : 4,
+    "row" : 2,
+    "label" : "다이아몬드",
+    "action" : {
+      "type" : "url",
+      "target" : "https://ko.minecraft.wiki/w/%EB%8B%A4%EC%9D%B4%EC%95%84%EB%AA%AC%EB%93%9C"
+    },
+    "image" : "diamond.png",
+    "qty" : 2,
+    "confirmBeforeRun" : false
+  } ]
+}
