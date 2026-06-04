@@ -1,5 +1,7 @@
 package io.github.wiskyahn.blockhud.app;
 
+import io.github.wiskyahn.blockhud.i18n.LocalizationService;
+import java.util.Locale;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -22,7 +24,8 @@ public class HudApplication extends Application {
 
     @Override
     public void start(Stage stage) {
-        Label label = new Label("Java Block HUD\nPhase 0 ✓");
+        LocalizationService i18n = new LocalizationService(Locale.getDefault());
+        Label label = new Label(i18n.get("app.title") + "\n" + i18n.get("hud.phase0") + " ✓");
         label.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-text-alignment: center;");
 
         StackPane root = new StackPane(label);
