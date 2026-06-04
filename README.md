@@ -24,6 +24,16 @@ Java 21 · JavaFX 21 · Gradle · OSHI(시스템 지표) · Jackson(JSON) · jpa
 
 자세한 아키텍처와 설계는 [DESIGN.md](DESIGN.md) 참고.
 
+## 빌드 & 실행
+
+JDK 21 필요. (Gradle 8.14는 JDK 25에서 실행되지 않으므로 `JAVA_HOME`을 21로 지정)
+
+```bash
+export JAVA_HOME="$(/usr/libexec/java_home -v 21)"   # macOS 예시
+./gradlew run     # HUD 창 실행
+./gradlew build   # 컴파일 + 테스트
+```
+
 ## 상태
 
 🚧 설계 완료 / 구현 시작 단계 (Phase 0).

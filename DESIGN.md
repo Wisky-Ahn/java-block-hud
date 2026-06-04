@@ -79,7 +79,7 @@
 
 ### 패키지 구조
 ```
-com.dmeloper.blockhud
+io.github.wiskyahn.blockhud
 ├── app          # 진입점, DI 와이어링, AppPaths, AppConfig
 ├── domain
 │   ├── model    # Item, Slot, SlotGrid, Theme, LayoutState, IndicatorReading
