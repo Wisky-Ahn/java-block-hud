@@ -1,0 +1,33 @@
+# --- 원본 참고 자료 (로컬 보관, 리포 제외) ---
+dmelopers-block-hud/
+
+# --- Claude / 로컬 설정 ---
+.claude/
+
+# --- Gradle ---
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# --- Java ---
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+hs_err_pid*
+*.log
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+out/
+bin/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
