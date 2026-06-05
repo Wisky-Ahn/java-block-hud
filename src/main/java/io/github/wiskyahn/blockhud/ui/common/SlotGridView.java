@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
@@ -37,6 +38,10 @@ public final class SlotGridView extends Pane {
     private final Consumer<Item> onActivate;
     private final List<Cell> cells = new ArrayList<>();
     private final Region highlight = new Region();
+    private final TooltipPopup tooltip = new TooltipPopup();
+
+    /** 보조 클릭(우클릭) 시 편집 콜백. */
+    private Consumer<Item> onEdit;
 
     private static final double DRAG_THRESHOLD = 5;
     private double pressX;
@@ -117,20 +122,39 @@ public final class SlotGridView extends Pane {
         }
     }
 
+    /** 우클릭 편집 콜백 등록. */
+    public void setOnEdit(Consumer<Item> handler) {
+        this.onEdit = handler;
+    }
+
     private void installMouseHandlers(Stage stageToDrag) {
-        setOnMouseMoved(e -> updateHighlight(e.getX(), e.getY()));
-        setOnMouseExited(e -> highlight.setVisible(false));
+        setOnMouseMoved(e -> {
+            updateHighlight(e.getX(), e.getY());
+            updateTooltip(e.getX(), e.getY(), e.getScreenX(), e.getScreenY());
+        });
+        setOnMouseExited(e -> {
+            highlight.setVisible(false);
+            tooltip.hide();
+        });
 
         setOnMousePressed(e -> {
             pressX = e.getScreenX();
             pressY = e.getScreenY();
             dragging = false;
+            if (e.isSecondaryButtonDown() && onEdit != null) {
+                Cell hit = cellAt(e.getX(), e.getY());
+                if (hit != null) {
+                    tooltip.hide();
+                    onEdit.accept(hit.item());
+                }
+            }
         });
 
         setOnMouseDragged(e -> {
-            if (stageToDrag == null) {
+            if (stageToDrag == null || !e.isPrimaryButtonDown()) {
                 return;
             }
+            tooltip.hide();
             if (Math.abs(e.getScreenX() - pressX) > DRAG_THRESHOLD
                     || Math.abs(e.getScreenY() - pressY) > DRAG_THRESHOLD) {
                 dragging = true;
@@ -150,11 +174,23 @@ public final class SlotGridView extends Pane {
                 dragging = false;
                 return;
             }
+            if (e.getButton() != MouseButton.PRIMARY) {
+                return; // 우클릭은 누를 때 편집으로 처리됨
+            }
             Cell hit = cellAt(e.getX(), e.getY());
             if (hit != null && onActivate != null) {
                 onActivate.accept(hit.item());
             }
         });
+    }
+
+    private void updateTooltip(double localX, double localY, double screenX, double screenY) {
+        Cell hit = cellAt(localX, localY);
+        if (hit == null) {
+            tooltip.hide();
+        } else {
+            tooltip.show(this, hit.item().label(), screenX, screenY);
+        }
     }
 
     private void updateHighlight(double x, double y) {

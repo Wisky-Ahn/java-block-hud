@@ -68,4 +68,21 @@ public enum WellKnownTargetId {
         // 셸 형태지만 매핑 미정 → null (호출 측에서 LaunchProgram으로 폴백, Windows에서만 동작)
         return null;
     }
+
+    /**
+     * 에디터 표시/저장용 정규 명령 문자열. {@link #fromCommand}으로 다시 파싱하면 동일 식별자가 된다.
+     */
+    public String toShellCommand() {
+        return switch (this) {
+            case THIS_PC -> "shell:MyComputerFolder";
+            case RECYCLE_BIN -> "shell:RecycleBinFolder";
+            case DOWNLOADS -> "shell:Downloads";
+            case DOCUMENTS -> "shell:Personal";
+            case PICTURES -> "shell:MyPictures";
+            case MUSIC -> "shell:MyMusic";
+            case VIDEOS -> "shell:MyVideo";
+            case DESKTOP -> "shell:Desktop";
+            case HOME -> "shell:Profile";
+        };
+    }
 }
