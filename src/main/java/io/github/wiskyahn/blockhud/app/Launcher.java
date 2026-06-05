@@ -13,6 +13,8 @@ public final class Launcher {
     }
 
     public static void main(String[] args) {
+        // 로그 출력 디렉터리를 OS별 설정 폴더로 지정 (logback.xml ${blockhud.logDir})
+        System.setProperty("blockhud.logDir", Diagnostics.logDir().toString());
         Application.launch(HudApplication.class, args);
     }
 }

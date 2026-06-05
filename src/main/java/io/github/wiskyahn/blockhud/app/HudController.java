@@ -13,6 +13,8 @@ import io.github.wiskyahn.blockhud.platform.StartupService;
 import io.github.wiskyahn.blockhud.service.ActionLauncher;
 import io.github.wiskyahn.blockhud.service.EditorDraft;
 import io.github.wiskyahn.blockhud.service.SystemMetricsService;
+import io.github.wiskyahn.blockhud.service.update.GitHubReleaseClient;
+import io.github.wiskyahn.blockhud.service.update.UpdateService;
 import io.github.wiskyahn.blockhud.ui.common.TooltipPopup;
 import io.github.wiskyahn.blockhud.ui.editor.EditorWindow;
 import io.github.wiskyahn.blockhud.ui.hud.ClockWindow;
@@ -22,6 +24,7 @@ import io.github.wiskyahn.blockhud.ui.hud.InventoryWindow;
 import io.github.wiskyahn.blockhud.ui.modal.ModalService;
 import io.github.wiskyahn.blockhud.ui.settings.SettingsWindow;
 import java.util.Map;
+import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Screen;
@@ -60,8 +63,10 @@ public final class HudController {
         this.inventory = new InventoryWindow(this::activate, this::edit);
         this.indicators = new IndicatorWindow(new SystemMetricsService());
         this.clock = new ClockWindow();
-        this.settingsWindow = new SettingsWindow(i18n,
-                Map.of("resetAllSkinPositions", this::placeInitial));
+        this.settingsWindow = new SettingsWindow(i18n, Map.of(
+                "resetAllSkinPositions", this::placeInitial,
+                "openVersionManager", this::checkForUpdate,
+                "openLogFolder", this::openLogFolder));
 
         launcher.registerInternal("_OPEN_INVENTORY_", inventory::toggle);
         launcher.registerInternal("_OPEN_SETTINGS_", this::openSettings);
@@ -143,6 +148,39 @@ public final class HudController {
         if (enabled != lastStartupEnabled) {
             startupService.setEnabled(enabled);
             lastStartupEnabled = enabled;
+        }
+    }
+
+    /** 업데이트 확인 — 네트워크는 백그라운드, 결과는 FX 스레드 모달. */
+    private void checkForUpdate() {
+        new Thread(() -> {
+            try {
+                var releases = new GitHubReleaseClient(AppInfo.GITHUB_OWNER, AppInfo.GITHUB_REPO)
+                        .fetchReleases();
+                UpdateService.Result result =
+                        new UpdateService(AppInfo.currentVersion()).check(releases);
+                Platform.runLater(() -> showUpdateResult(result));
+            } catch (Exception e) {
+                log.warn("업데이트 확인 실패: {}", e.getMessage());
+                Platform.runLater(() -> modal.alert("update.failed", e.getMessage()));
+            }
+        }, "update-check").start();
+    }
+
+    private void showUpdateResult(UpdateService.Result result) {
+        switch (result.status()) {
+            case UPDATE_AVAILABLE -> modal.alert("update.available", result.latest(), AppInfo.VERSION);
+            case UP_TO_DATE -> modal.alert("update.upToDate", AppInfo.VERSION);
+            case NO_RELEASES -> modal.alert("update.noReleases");
+        }
+    }
+
+    private void openLogFolder() {
+        try {
+            java.nio.file.Files.createDirectories(Diagnostics.logDir());
+            Platforms.shell().openPath(Diagnostics.logDir().toString());
+        } catch (Exception e) {
+            log.warn("로그 폴더 열기 실패: {}", e.getMessage());
         }
     }
 

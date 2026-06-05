@@ -24,6 +24,8 @@ public final class SettingsSchema {
                     SettingField.stepper("ItemCountTextFontSize", 18, 8, 48, 1),
                     SettingField.toggle("EnableRainmeterStartup", false),
                     SettingField.readonly("appVersion", "0.1.0"),
+                    SettingField.action("openVersionManager"),
+                    SettingField.action("openLogFolder"),
                     SettingField.action("resetAllSettings"))),
 
             new SettingsTab("lowSpec", List.of(
