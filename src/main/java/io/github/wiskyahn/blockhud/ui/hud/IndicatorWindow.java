@@ -3,8 +3,8 @@ package io.github.wiskyahn.blockhud.ui.hud;
 import io.github.wiskyahn.blockhud.domain.model.IndicatorSource;
 import io.github.wiskyahn.blockhud.service.SystemMetricsService;
 import io.github.wiskyahn.blockhud.ui.common.WindowDrag;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -19,40 +19,36 @@ import javafx.util.Duration;
 
 /**
  * 시스템 인디케이터 창 — 마크 하트/갑옷/배고픔/공기/경험치 게이지를 1Hz로 갱신.
- * 미지원 소스(배터리 없음, GPU 등)는 자동 숨김. (DESIGN.md §8.2)
- *
- * <p>Phase 4: 5개 바를 세로로 스택. 핫바 주변 정밀 배치는 LayoutEngine(§8.1, Phase 7)에서.
+ * 소스는 설정에서 주입(기본값은 원본과 동일). 미지원 소스는 자동 숨김. (DESIGN.md §8.2)
  */
 public final class IndicatorWindow {
 
     private static final double SCALE = 0.5; // 586×65 → 293×32.5
 
-    /** (아이콘 디렉터리, 소스) — Phase 5 설정 연동 전 기본값. */
-    private record BarSpec(String dir, IndicatorSource source) {
-    }
+    /** 표시 순서대로 (아이콘 디렉터리, 원본 기본 소스). */
+    private static final Map<String, IndicatorSource> DEFAULT_SOURCES = new LinkedHashMap<>();
 
-    private static final List<BarSpec> SPECS = List.of(
-            new BarSpec("heart", IndicatorSource.RAM_USED),
-            new BarSpec("armor", IndicatorSource.CPU_LOAD),
-            new BarSpec("food", IndicatorSource.DISK_USED),
-            new BarSpec("air", IndicatorSource.BATTERY_CHARGE),
-            new BarSpec("exp", IndicatorSource.CPU_IDLE));
+    static {
+        DEFAULT_SOURCES.put("heart", IndicatorSource.CPU_IDLE);
+        DEFAULT_SOURCES.put("armor", IndicatorSource.CPU_LOAD);
+        DEFAULT_SOURCES.put("food", IndicatorSource.RAM_FREE);
+        DEFAULT_SOURCES.put("air", IndicatorSource.RAM_USED);
+        DEFAULT_SOURCES.put("exp", IndicatorSource.DISK_USED);
+    }
 
     private final Stage stage = new Stage();
     private final SystemMetricsService metrics;
-    private final List<Binding> bindings = new ArrayList<>();
+    private final Map<String, IndicatorBar> bars = new LinkedHashMap<>();
+    private final Map<String, IndicatorSource> sources = new LinkedHashMap<>(DEFAULT_SOURCES);
     private final VBox root = new VBox(4);
     private Timeline timeline;
-
-    private record Binding(IndicatorBar bar, IndicatorSource source) {
-    }
 
     public IndicatorWindow(SystemMetricsService metrics) {
         this.metrics = metrics;
 
-        for (BarSpec spec : SPECS) {
-            IndicatorBar bar = new IndicatorBar(spec.dir(), SCALE);
-            bindings.add(new Binding(bar, spec.source()));
+        for (String dir : DEFAULT_SOURCES.keySet()) {
+            IndicatorBar bar = new IndicatorBar(dir, SCALE);
+            bars.put(dir, bar);
             root.getChildren().add(bar);
         }
         root.setPadding(new Insets(6));
@@ -65,6 +61,17 @@ public final class IndicatorWindow {
         stage.setTitle("Block HUD — Indicators");
         stage.setScene(scene);
         WindowDrag.enable(stage, root);
+    }
+
+    /** 설정에서 각 바의 소스를 주입. */
+    public void setSources(IndicatorSource heart, IndicatorSource armor, IndicatorSource food,
+                           IndicatorSource air, IndicatorSource exp) {
+        sources.put("heart", heart);
+        sources.put("armor", armor);
+        sources.put("food", food);
+        sources.put("air", air);
+        sources.put("exp", exp);
+        update();
     }
 
     public void show() {
@@ -85,17 +92,14 @@ public final class IndicatorWindow {
 
     private void update() {
         metrics.poll();
-        for (Binding b : bindings) {
-            Optional<Double> value = metrics.read(b.source(), null);
-            if (value.isPresent()) {
-                b.bar().setVisible(true);
-                b.bar().setManaged(true);
-                b.bar().setRatio(value.get());
-            } else {
-                // 미지원 소스 → 숨김 (graceful degradation)
-                b.bar().setVisible(false);
-                b.bar().setManaged(false);
+        bars.forEach((dir, bar) -> {
+            Optional<Double> value = metrics.read(sources.get(dir), null);
+            boolean supported = value.isPresent();
+            bar.setVisible(supported);
+            bar.setManaged(supported);
+            if (supported) {
+                bar.setRatio(value.get());
             }
-        }
+        });
     }
 }
