@@ -28,6 +28,18 @@ public final class Assets {
         return IMAGE_CACHE.computeIfAbsent(name, Assets::loadImage);
     }
 
+    /** {@code /assets/} 하위 상대경로로 이미지 로드 (예: {@code indicators/heart/fill.png}). */
+    public static Image imageAt(String relativePath) {
+        return IMAGE_CACHE.computeIfAbsent("@" + relativePath, k -> {
+            var url = Assets.class.getResource("/assets/" + relativePath);
+            if (url != null) {
+                return new Image(url.toExternalForm());
+            }
+            log.warn("이미지를 찾을 수 없음: {}", relativePath);
+            return null;
+        });
+    }
+
     private static Image loadImage(String name) {
         for (String dir : IMAGE_DIRS) {
             var url = Assets.class.getResource("/assets/" + dir + "/" + name);
