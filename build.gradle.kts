@@ -1,10 +1,13 @@
 plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
+    // 비모듈 JavaFX 앱의 jlink 런타임 + jpackage 네이티브 설치본 (DESIGN.md §6 Phase 7)
+    id("org.beryx.runtime") version "1.13.1"
 }
 
 group = "io.github.wiskyahn"
-version = "0.1.0-SNAPSHOT"
+// jpackage app-version은 숫자형만 허용하고 macOS는 첫 숫자가 1 이상이어야 함
+version = "1.0.0"
 
 java {
     toolchain {
@@ -47,4 +50,29 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+// ── 패키징: jlink 커스텀 런타임 + jpackage OS별 설치본 (.dmg/.msi/.deb) ──
+runtime {
+    // 커스텀 JRE 압축
+    options.set(listOf("--strip-debug", "--no-header-files", "--no-man-pages", "--compress", "2"))
+    // 앱·의존성이 쓰는 JDK 모듈 (JavaFX는 클래스패스로 로드되므로 jlink 비포함)
+    modules.set(listOf(
+        "java.base", "java.desktop", "java.logging", "java.naming",
+        "java.net.http", "java.scripting", "java.xml", "java.management",
+        "jdk.unsupported", "java.sql"
+    ))
+
+    jpackage {
+        imageName = "JavaBlockHud"
+        installerName = "JavaBlockHud"
+        // jpackage --app-version은 숫자형만 허용 (SNAPSHOT 불가)
+        val osName = System.getProperty("os.name").lowercase()
+        installerOptions = listOf("--vendor", "Wisky-Ahn")
+        when {
+            osName.contains("mac") -> installerType = "dmg"
+            osName.contains("win") -> installerType = "msi"
+            else -> installerType = "deb"
+        }
+    }
 }

@@ -1,0 +1,51 @@
+name: package
+
+# 태그(v*) 푸시 또는 수동 실행 시 OS별 네이티브 설치본 빌드.
+# jpackage는 크로스빌드 불가 → 각 OS 러너에서 각각 생성. (DESIGN.md §6 Phase 7)
+on:
+  workflow_dispatch:
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  package:
+    name: package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact: dmg
+          - os: ubuntu-latest
+            artifact: deb
+          - os: windows-latest
+            artifact: msi
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Windows .msi 생성에는 WiX Toolset 필요
+      - name: Install WiX (Windows)
+        if: runner.os == 'Windows'
+        run: choco install wixtoolset --no-progress -y
+        shell: pwsh
+
+      - name: Build installer
+        shell: bash
+        run: ./gradlew jpackage --no-daemon --stacktrace
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: JavaBlockHud-${{ matrix.artifact }}
+          path: |
+            build/jpackage/*.dmg
+            build/jpackage/*.deb
+            build/jpackage/*.msi
+          if-no-files-found: warn

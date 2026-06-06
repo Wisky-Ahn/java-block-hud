@@ -34,6 +34,23 @@ export JAVA_HOME="$(/usr/libexec/java_home -v 21)"   # macOS 예시
 ./gradlew build   # 컴파일 + 테스트
 ```
 
+## 설치본 패키징
+
+OS별 네이티브 설치본을 생성합니다 (jlink 커스텀 런타임 번들 포함, JDK 불필요).
+
+```bash
+./gradlew jpackage   # 현재 OS용 설치본 → build/jpackage/
+```
+
+| OS | 산출물 | 필요 도구 |
+| --- | --- | --- |
+| macOS | `.dmg` | (기본) |
+| Linux | `.deb` | dpkg |
+| Windows | `.msi` | WiX Toolset |
+
+jpackage는 크로스빌드를 지원하지 않아 각 OS에서 따로 빌드합니다.
+태그(`v*`) 푸시 시 GitHub Actions가 3개 OS 설치본을 자동 생성합니다 ([package.yml](.github/workflows/build.yml)).
+
 ## 상태
 
 🚧 설계 완료 / 구현 시작 단계 (Phase 0).

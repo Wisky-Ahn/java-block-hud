@@ -24,7 +24,7 @@ public final class SettingsSchema {
                     SettingField.toggle("HideHintTooltip", false),
                     SettingField.stepper("ItemCountTextFontSize", 18, 8, 48, 1),
                     SettingField.toggle("EnableRainmeterStartup", false),
-                    SettingField.readonly("appVersion", "0.1.0"),
+                    SettingField.readonly("appVersion", "1.0.0"),
                     SettingField.action("openVersionManager"),
                     SettingField.action("openLogFolder"),
                     SettingField.action("resetAllSettings"))),
