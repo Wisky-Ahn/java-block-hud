@@ -32,6 +32,9 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.16")
     runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
 
+    // 네이티브 창 Z-고정 (macOS NSWindow level / Windows User32) — DESIGN.md §8.1
+    implementation("net.java.dev.jna:jna:5.14.0")
+
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

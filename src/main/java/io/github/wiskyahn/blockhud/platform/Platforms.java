@@ -2,6 +2,7 @@ package io.github.wiskyahn.blockhud.platform;
 
 import io.github.wiskyahn.blockhud.platform.linux.LinuxShell;
 import io.github.wiskyahn.blockhud.platform.mac.MacShell;
+import io.github.wiskyahn.blockhud.platform.mac.MacWindowPin;
 import io.github.wiskyahn.blockhud.platform.windows.WindowsShell;
 import java.util.Locale;
 
@@ -30,5 +31,10 @@ public final class Platforms {
             case MAC -> new MacShell();
             case LINUX -> new LinuxShell();
         };
+    }
+
+    /** 바탕화면 레벨 고정 서비스. 현재 macOS만 네이티브 구현, 나머지는 no-op(toBack 폴백). */
+    public static WindowPinService windowPin() {
+        return current() == Os.MAC ? new MacWindowPin() : WindowPinService.NOOP;
     }
 }
