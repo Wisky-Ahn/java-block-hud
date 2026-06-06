@@ -52,6 +52,8 @@ public final class IndicatorWindow {
             root.getChildren().add(bar);
         }
         root.setPadding(new Insets(6));
+        // 명시적 투명 배경 — 미설정 시 macOS 투명 Stage에서 기본 흰색 백킹이 노출됨
+        root.setStyle("-fx-background-color: transparent;");
 
         Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);
