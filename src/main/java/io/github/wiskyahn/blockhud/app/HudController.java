@@ -60,7 +60,7 @@ public final class HudController {
         this.modal = new ModalService(i18n);
         this.editor = new EditorWindow(i18n);
         this.hotbar = new HotbarWindow(this::activate, this::edit);
-        this.inventory = new InventoryWindow(this::activate, this::edit);
+        this.inventory = new InventoryWindow(this::activate, this::edit, this::openSettings);
         this.indicators = new IndicatorWindow(new SystemMetricsService());
         this.clock = new ClockWindow();
         this.settingsWindow = new SettingsWindow(i18n, Map.of(
