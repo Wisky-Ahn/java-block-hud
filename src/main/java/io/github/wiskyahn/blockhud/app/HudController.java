@@ -115,6 +115,7 @@ public final class HudController {
                 IndicatorSource.fromKey(settings.get("AirBarSource")),
                 IndicatorSource.fromKey(settings.get("ExpBarSource")));
         TooltipPopup.setEnabled(!settings.getBoolean("LowSpecDisableHoverTextTooltip"));
+        inventory.setShowSteve(!settings.getBoolean("HideSteve"));
 
         toggleWindow(hotbar.stage(), settings.getBoolean("EnableHotbarSkin"));
         toggleWindow(clock.stage(), settings.getBoolean("EnableClockSkin"));

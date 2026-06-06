@@ -28,7 +28,7 @@ public final class HotbarWindow {
         this.onActivate = onActivate;
         this.onEdit = onEdit;
         stage.initStyle(StageStyle.TRANSPARENT);
-        stage.setAlwaysOnTop(true);
+        // 바탕화면 위젯 — always-on-top 아님 (원본 ZPos -2, 다른 창 뒤). show()에서 toBack.
         stage.setTitle("Block HUD — Hotbar");
     }
 
@@ -59,6 +59,7 @@ public final class HotbarWindow {
 
     public void show() {
         stage.show();
+        io.github.wiskyahn.blockhud.ui.common.WindowLevel.sendToBack(stage);
     }
 
     public Stage stage() {

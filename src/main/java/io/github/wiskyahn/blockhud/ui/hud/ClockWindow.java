@@ -48,7 +48,6 @@ public final class ClockWindow {
         scene.setFill(Color.TRANSPARENT);
 
         stage.initStyle(StageStyle.TRANSPARENT);
-        stage.setAlwaysOnTop(true);
         stage.setTitle("Block HUD — Clock");
         stage.setScene(scene);
         WindowDrag.enable(stage, root);
@@ -62,6 +61,7 @@ public final class ClockWindow {
     public void show() {
         update();
         stage.show();
+        io.github.wiskyahn.blockhud.ui.common.WindowLevel.sendToBack(stage);
         timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> update()));
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();

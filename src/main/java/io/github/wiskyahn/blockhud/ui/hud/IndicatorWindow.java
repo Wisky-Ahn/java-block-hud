@@ -59,7 +59,6 @@ public final class IndicatorWindow {
         scene.setFill(Color.TRANSPARENT);
 
         stage.initStyle(StageStyle.TRANSPARENT);
-        stage.setAlwaysOnTop(true);
         stage.setTitle("Block HUD — Indicators");
         stage.setScene(scene);
         WindowDrag.enable(stage, root);
@@ -79,6 +78,7 @@ public final class IndicatorWindow {
     public void show() {
         update();
         stage.show();
+        io.github.wiskyahn.blockhud.ui.common.WindowLevel.sendToBack(stage);
         startTimer();
     }
 
