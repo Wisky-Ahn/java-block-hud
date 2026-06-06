@@ -4,6 +4,7 @@ import io.github.wiskyahn.blockhud.domain.model.Item;
 import io.github.wiskyahn.blockhud.domain.model.SlotAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javafx.scene.image.Image;
@@ -42,6 +43,15 @@ public final class SlotGridView extends Pane {
 
     /** 보조 클릭(우클릭) 시 편집 콜백. */
     private Consumer<Item> onEdit;
+
+    // 아이템 드래그앤드롭 (편집 모드)
+    private boolean itemDragEnabled;
+    private Function<double[], io.github.wiskyahn.blockhud.domain.model.SlotAddress> dropResolver;
+    private BiConsumer<io.github.wiskyahn.blockhud.domain.model.SlotAddress,
+            io.github.wiskyahn.blockhud.domain.model.SlotAddress> onMove;
+    private ImageView ghost;
+    private Cell dragSource;
+    private boolean itemDragging;
 
     private static final double DRAG_THRESHOLD = 5;
     private double pressX;
@@ -127,6 +137,19 @@ public final class SlotGridView extends Pane {
         this.onEdit = handler;
     }
 
+    /**
+     * 아이템 드래그앤드롭 활성화(편집 모드). {@code resolver}는 로컬좌표→슬롯주소(빈 칸 포함),
+     * {@code onMove}는 (출발, 도착) 슬롯 이동/교환 콜백.
+     */
+    public void enableItemDrag(boolean enabled,
+            Function<double[], io.github.wiskyahn.blockhud.domain.model.SlotAddress> resolver,
+            BiConsumer<io.github.wiskyahn.blockhud.domain.model.SlotAddress,
+                    io.github.wiskyahn.blockhud.domain.model.SlotAddress> onMove) {
+        this.itemDragEnabled = enabled;
+        this.dropResolver = resolver;
+        this.onMove = onMove;
+    }
+
     private void installMouseHandlers(Stage stageToDrag) {
         setOnMouseMoved(e -> {
             updateHighlight(e.getX(), e.getY());
@@ -141,6 +164,8 @@ public final class SlotGridView extends Pane {
             pressX = e.getScreenX();
             pressY = e.getScreenY();
             dragging = false;
+            itemDragging = false;
+            dragSource = cellAt(e.getX(), e.getY());
             if (e.isSecondaryButtonDown() && onEdit != null) {
                 Cell hit = cellAt(e.getX(), e.getY());
                 if (hit != null) {
@@ -151,12 +176,26 @@ public final class SlotGridView extends Pane {
         });
 
         setOnMouseDragged(e -> {
+            boolean moved = Math.abs(e.getScreenX() - pressX) > DRAG_THRESHOLD
+                    || Math.abs(e.getScreenY() - pressY) > DRAG_THRESHOLD;
+
+            // 편집 모드 아이템 드래그
+            if (itemDragEnabled && dragSource != null && e.isPrimaryButtonDown()) {
+                if (moved) {
+                    itemDragging = true;
+                    tooltip.hide();
+                    highlight.setVisible(false);
+                    showGhost(dragSource.item(), e.getX(), e.getY());
+                }
+                return;
+            }
+
+            // 창 이동 드래그
             if (stageToDrag == null || !e.isPrimaryButtonDown()) {
                 return;
             }
             tooltip.hide();
-            if (Math.abs(e.getScreenX() - pressX) > DRAG_THRESHOLD
-                    || Math.abs(e.getScreenY() - pressY) > DRAG_THRESHOLD) {
+            if (moved) {
                 dragging = true;
             }
             if (dragging) {
@@ -167,6 +206,19 @@ public final class SlotGridView extends Pane {
         });
 
         setOnMouseReleased(e -> {
+            if (itemDragging) {
+                hideGhost();
+                if (dropResolver != null && onMove != null && dragSource != null) {
+                    var target = dropResolver.apply(new double[]{e.getX(), e.getY()});
+                    var from = dragSource.item().address();
+                    if (target != null && !target.equals(from)) {
+                        onMove.accept(from, target);
+                    }
+                }
+                itemDragging = false;
+                dragSource = null;
+                return;
+            }
             if (dragging) {
                 if (stageToDrag != null) {
                     SnapUtil.snapToScreenEdges(stageToDrag);
@@ -182,6 +234,33 @@ public final class SlotGridView extends Pane {
                 onActivate.accept(hit.item());
             }
         });
+    }
+
+    private void showGhost(Item item, double x, double y) {
+        if (item.image().isBlank()) {
+            return;
+        }
+        if (ghost == null) {
+            ghost = new ImageView();
+            ghost.setMouseTransparent(true);
+            ghost.setOpacity(0.75);
+            ghost.setSmooth(false);
+            double size = config.slotSize() + config.itemSizeOffset();
+            ghost.setFitWidth(size);
+            ghost.setFitHeight(size);
+            getChildren().add(ghost);
+        }
+        ghost.setImage(Assets.image(item.image()));
+        ghost.setVisible(true);
+        ghost.toFront();
+        ghost.setLayoutX(x - ghost.getFitWidth() / 2);
+        ghost.setLayoutY(y - ghost.getFitHeight() / 2);
+    }
+
+    private void hideGhost() {
+        if (ghost != null) {
+            ghost.setVisible(false);
+        }
     }
 
     private void updateTooltip(double localX, double localY, double screenX, double screenY) {

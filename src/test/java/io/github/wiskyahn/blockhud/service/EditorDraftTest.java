@@ -74,6 +74,34 @@ class EditorDraftTest {
         assertEquals("c", draft.working().hotbar().get(0).label());
     }
 
+    private static Item grid(int col, int row, String label) {
+        return new Item(new SlotAddress.GridSlot(col, row), label, ItemAction.NONE,
+                "img.png", 0, ImageOffset.ZERO, false);
+    }
+
+    @Test
+    void moveToEmptySlotRelocatesItem() {
+        EditorDraft draft = new EditorDraft(new HudData(List.of(), List.of(grid(1, 1, "gold"))));
+
+        draft.move(new SlotAddress.GridSlot(1, 1), new SlotAddress.GridSlot(3, 2));
+
+        assertEquals(1, draft.working().inventory().size());
+        Item moved = draft.working().inventory().get(0);
+        assertEquals(new SlotAddress.GridSlot(3, 2), moved.address());
+        assertEquals("gold", moved.label());
+    }
+
+    @Test
+    void moveSwapsWhenTargetOccupied() {
+        EditorDraft draft = new EditorDraft(new HudData(List.of(),
+                List.of(grid(1, 1, "a"), grid(2, 2, "b"))));
+
+        draft.move(new SlotAddress.GridSlot(1, 1), new SlotAddress.GridSlot(2, 2));
+
+        assertEquals("b", draft.find(new SlotAddress.GridSlot(1, 1)).orElseThrow().label());
+        assertEquals("a", draft.find(new SlotAddress.GridSlot(2, 2)).orElseThrow().label());
+    }
+
     @Test
     void resetRestoresBaseline() {
         EditorDraft draft = new EditorDraft(new HudData(List.of(hotbar(1, "a")), List.of()));

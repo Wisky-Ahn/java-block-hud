@@ -60,7 +60,8 @@ public final class HudController {
         this.modal = new ModalService(i18n);
         this.editor = new EditorWindow(i18n);
         this.hotbar = new HotbarWindow(this::activate, this::edit);
-        this.inventory = new InventoryWindow(this::activate, this::edit, this::openSettings);
+        this.inventory = new InventoryWindow(
+                this::activate, this::edit, this::openSettings, this::moveInventoryItem);
         this.indicators = new IndicatorWindow(new SystemMetricsService());
         this.clock = new ClockWindow();
         this.settingsWindow = new SettingsWindow(i18n, Map.of(
@@ -191,6 +192,20 @@ public final class HudController {
         } else {
             launcher.launch(item.action());
         }
+    }
+
+    /** 편집 모드 인벤토리 드래그앤드롭: 슬롯 이동/교환 → 드래프트 반영 → 저장 → 새로고침. */
+    private void moveInventoryItem(io.github.wiskyahn.blockhud.domain.model.SlotAddress from,
+                                   io.github.wiskyahn.blockhud.domain.model.SlotAddress to) {
+        draft.move(from, to);
+        io.github.wiskyahn.blockhud.domain.model.HudData updated = draft.working();
+        try {
+            repository.save(updated);
+            draft.markCommitted();
+        } catch (Exception e) {
+            log.warn("이동 저장 실패: {}", e.getMessage());
+        }
+        inventory.setItems(updated.inventory());
     }
 
     private void edit(Item item) {

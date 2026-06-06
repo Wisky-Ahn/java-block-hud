@@ -45,4 +45,8 @@ public record Item(
     public Item withOffset(ImageOffset newOffset) {
         return new Item(address, label, action, image, qty, newOffset, confirmBeforeRun);
     }
+
+    public Item withAddress(SlotAddress newAddress) {
+        return new Item(newAddress, label, action, image, qty, offset, confirmBeforeRun);
+    }
 }

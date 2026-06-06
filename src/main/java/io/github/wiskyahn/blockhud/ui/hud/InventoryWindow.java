@@ -6,6 +6,7 @@ import io.github.wiskyahn.blockhud.ui.common.Assets;
 import io.github.wiskyahn.blockhud.ui.common.SlotGridView;
 import io.github.wiskyahn.blockhud.ui.common.WindowLevel;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -47,16 +48,19 @@ public final class InventoryWindow {
     private final Consumer<Item> onActivate;
     private final Consumer<Item> onEdit;
     private final Runnable onOpenSettings;
+    private final BiConsumer<SlotAddress, SlotAddress> onMove;
     private final Pane root = new Pane();
     private final Label editBadge = new Label("EDIT");
     private List<Item> items = List.of();
     private boolean showSteve = true;
     private boolean editMode = false;
 
-    public InventoryWindow(Consumer<Item> onActivate, Consumer<Item> onEdit, Runnable onOpenSettings) {
+    public InventoryWindow(Consumer<Item> onActivate, Consumer<Item> onEdit, Runnable onOpenSettings,
+                           BiConsumer<SlotAddress, SlotAddress> onMove) {
         this.onActivate = onActivate;
         this.onEdit = onEdit;
         this.onOpenSettings = onOpenSettings;
+        this.onMove = onMove;
 
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("Block HUD — Inventory");
@@ -104,6 +108,8 @@ public final class InventoryWindow {
         };
         SlotGridView slotView = new SlotGridView(config, items, InventoryWindow::placement, click, null);
         slotView.setOnEdit(onEdit);
+        // 편집 모드일 때 슬롯 드래그앤드롭(이동/교환)
+        slotView.enableItemDrag(editMode, InventoryWindow::resolveCell, onMove);
         root.getChildren().add(slotView);
 
         if (showSteve) {
@@ -165,7 +171,29 @@ public final class InventoryWindow {
 
     private void toggleEditMode() {
         editMode = !editMode;
-        editBadge.setVisible(editMode);
+        rebuild(); // 드래그앤드롭 활성/비활성 반영
+    }
+
+    /** 로컬 좌표 → 슬롯 주소 (빈 칸 포함). placement의 역변환 — 드롭 타깃 판별용. */
+    private static SlotAddress resolveCell(double[] xy) {
+        double x = xy[0];
+        double y = xy[1];
+        if (x < ORIGIN_X) {
+            return null;
+        }
+        int col = (int) Math.floor((x - ORIGIN_X) / SLOT) + 1;
+        if (col < 1 || col > 9) {
+            return null;
+        }
+        int row;
+        if (y >= STORAGE_Y && y < STORAGE_Y + 3 * SLOT) {
+            row = (int) Math.floor((y - STORAGE_Y) / SLOT) + 1;
+        } else if (y >= BOTTOM_Y && y < BOTTOM_Y + SLOT) {
+            row = 4;
+        } else {
+            return null;
+        }
+        return new SlotAddress.GridSlot(col, row);
     }
 
     private static double[] placement(SlotAddress address) {

@@ -82,6 +82,40 @@ public final class EditorDraft {
         redoStack.clear();
     }
 
+    /**
+     * 슬롯 {@code from}의 아이템을 {@code to}로 이동. {@code to}에 아이템이 있으면 서로 교환.
+     * 같은 목록(둘 다 핫바 또는 둘 다 인벤토리) 내에서만 처리. (원본 에디터 드래그앤드롭)
+     */
+    public void move(SlotAddress from, SlotAddress to) {
+        if (from.equals(to)) {
+            return;
+        }
+        boolean hotbar = from instanceof SlotAddress.HotbarSlot;
+        List<Item> source = hotbar ? working.hotbar() : working.inventory();
+        Optional<Item> fromItem = source.stream().filter(i -> i.address().equals(from)).findFirst();
+        if (fromItem.isEmpty()) {
+            return;
+        }
+        Optional<Item> toItem = source.stream().filter(i -> i.address().equals(to)).findFirst();
+
+        undoStack.push(working);
+        redoStack.clear();
+
+        List<Item> result = new ArrayList<>();
+        for (Item item : source) {
+            if (item.address().equals(from) || item.address().equals(to)) {
+                continue;
+            }
+            result.add(item);
+        }
+        result.add(fromItem.get().withAddress(to));
+        toItem.ifPresent(item -> result.add(item.withAddress(from)));
+
+        working = hotbar
+                ? new HudData(result, working.inventory())
+                : new HudData(working.hotbar(), result);
+    }
+
     private List<Item> items(SlotAddress address) {
         return address instanceof SlotAddress.HotbarSlot ? working.hotbar() : working.inventory();
     }
