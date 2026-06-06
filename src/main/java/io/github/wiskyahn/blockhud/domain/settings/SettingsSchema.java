@@ -21,6 +21,7 @@ public final class SettingsSchema {
             new SettingsTab("general", List.of(
                     SettingField.dropdown("LanguageCode", "ko-KR", List.of("ko-KR", "en-US")),
                     SettingField.toggle("UseClickSound", true),
+                    SettingField.toggle("HideHintTooltip", false),
                     SettingField.stepper("ItemCountTextFontSize", 18, 8, 48, 1),
                     SettingField.toggle("EnableRainmeterStartup", false),
                     SettingField.readonly("appVersion", "0.1.0"),
@@ -50,15 +51,24 @@ public final class SettingsSchema {
 
             new SettingsTab("inventory", List.of(
                     SettingField.stepper("InventoryItemSize", 60, 24, 120, 1),
+                    SettingField.stepper("TooltipTextFontSize", 22, 8, 48, 1),
                     SettingField.toggle("EnableInventorySkin", true),
                     SettingField.toggle("HideSteve", false),
+                    SettingField.toggle("UseInventoryBottomRow", false),
+                    SettingField.text("MinecraftSkinUsername", ""),
+                    SettingField.toggle("HideSettingsButton", false),
+                    SettingField.toggle("HideEditButton", false),
                     SettingField.toggle("AllowInventoryDrag", false))),
 
             new SettingsTab("clock", List.of(
                     SettingField.toggle("Use24HourClock", true),
+                    SettingField.toggle("HideClockMeridiem", false),
                     SettingField.stepper("ClockTimeTextSize", 40, 16, 120, 1),
                     SettingField.stepper("ClockDateTextSize", 16, 8, 64, 1),
-                    SettingField.toggle("EnableClockSkin", true))),
+                    SettingField.stepper("ClockSpriteSize", 128, 32, 256, 8),
+                    SettingField.toggle("EnableClockSkin", true),
+                    SettingField.toggle("EnableClockTextSkin", true),
+                    SettingField.toggle("EnableClockSpriteSkin", true))),
 
             new SettingsTab("ui", List.of(
                     SettingField.dropdown("settingsTheme", "dark", List.of("dark", "light")),

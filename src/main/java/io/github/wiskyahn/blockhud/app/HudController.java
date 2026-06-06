@@ -12,11 +12,13 @@ import io.github.wiskyahn.blockhud.platform.Platforms;
 import io.github.wiskyahn.blockhud.platform.StartupService;
 import io.github.wiskyahn.blockhud.service.ActionLauncher;
 import io.github.wiskyahn.blockhud.service.EditorDraft;
+import io.github.wiskyahn.blockhud.service.SoundService;
 import io.github.wiskyahn.blockhud.service.SystemMetricsService;
 import io.github.wiskyahn.blockhud.service.update.GitHubReleaseClient;
 import io.github.wiskyahn.blockhud.service.update.UpdateService;
 import io.github.wiskyahn.blockhud.ui.common.TooltipPopup;
 import io.github.wiskyahn.blockhud.ui.editor.EditorWindow;
+import io.github.wiskyahn.blockhud.ui.hud.ClockSpriteWindow;
 import io.github.wiskyahn.blockhud.ui.hud.ClockWindow;
 import io.github.wiskyahn.blockhud.ui.hud.HotbarWindow;
 import io.github.wiskyahn.blockhud.ui.hud.IndicatorWindow;
@@ -44,6 +46,7 @@ public final class HudController {
     private final SettingsRepository settingsRepository = SettingsRepository.atDefaultLocation();
     private final ActionLauncher launcher = new ActionLauncher(Platforms.shell());
     private final StartupService startupService = new StartupService();
+    private final SoundService sound = new SoundService();
     private final ModalService modal;
     private final EditorWindow editor;
     private final SettingsWindow settingsWindow;
@@ -51,6 +54,7 @@ public final class HudController {
     private final InventoryWindow inventory;
     private final IndicatorWindow indicators;
     private final ClockWindow clock;
+    private final ClockSpriteWindow clockSprite;
 
     private EditorDraft draft;
     private Settings settings;
@@ -64,6 +68,7 @@ public final class HudController {
                 this::activate, this::edit, this::openSettings, this::moveInventoryItem);
         this.indicators = new IndicatorWindow(new SystemMetricsService());
         this.clock = new ClockWindow();
+        this.clockSprite = new ClockSpriteWindow();
         this.settingsWindow = new SettingsWindow(i18n, Map.of(
                 "resetAllSkinPositions", this::placeInitial,
                 "openVersionManager", this::checkForUpdate,
@@ -109,6 +114,9 @@ public final class HudController {
     /** 설정값을 실제 창/서비스에 반영. */
     private void applySettings() {
         clock.setUse24Hour(settings.getBoolean("Use24HourClock"));
+        clock.setHideMeridiem(settings.getBoolean("HideClockMeridiem"));
+        inventory.setButtonVisibility(
+                settings.getBoolean("HideSettingsButton"), settings.getBoolean("HideEditButton"));
         indicators.setSources(
                 IndicatorSource.fromKey(settings.get("HealthBarSource")),
                 IndicatorSource.fromKey(settings.get("ArmorBarSource")),
@@ -117,9 +125,14 @@ public final class HudController {
                 IndicatorSource.fromKey(settings.get("ExpBarSource")));
         TooltipPopup.setEnabled(!settings.getBoolean("LowSpecDisableHoverTextTooltip"));
         inventory.setShowSteve(!settings.getBoolean("HideSteve"));
+        sound.setEnabled(settings.getBoolean("UseClickSound"));
 
         toggleWindow(hotbar.stage(), settings.getBoolean("EnableHotbarSkin"));
-        toggleWindow(clock.stage(), settings.getBoolean("EnableClockSkin"));
+        toggleWindow(clock.stage(), settings.getBoolean("EnableClockSkin")
+                && settings.getBoolean("EnableClockTextSkin"));
+        clockSprite.setRenderSize(settings.getInt("ClockSpriteSize", 128));
+        toggleWindow(clockSprite.stage(), settings.getBoolean("EnableClockSkin")
+                && settings.getBoolean("EnableClockSpriteSkin"));
     }
 
     private void toggleWindow(Stage stage, boolean enabled) {
@@ -187,6 +200,7 @@ public final class HudController {
     }
 
     private void activate(Item item) {
+        sound.playClick();
         if (item.confirmBeforeRun()) {
             modal.confirm("action.confirm.run", () -> launcher.launch(item.action()), item.label());
         } else {
@@ -228,6 +242,7 @@ public final class HudController {
         hotbar.show();
         indicators.show();
         clock.show();
+        clockSprite.show();
         installShortcuts();
         applySettings();
         // 주의: macOS 바탕화면 레벨(kCGDesktopWindowLevel) 고정은 클릭 이벤트를 막는다.
@@ -269,5 +284,10 @@ public final class HudController {
         Stage clk = clock.stage();
         clk.setX(screen.getMinX() + (screen.getWidth() - 160) / 2);
         clk.setY(screen.getMinY() + 24);
+
+        // 스프라이트 시계(해/달): 텍스트 시계 아래
+        Stage clkSprite = clockSprite.stage();
+        clkSprite.setX(screen.getMinX() + (screen.getWidth() - 128) / 2);
+        clkSprite.setY(screen.getMinY() + 110);
     }
 }

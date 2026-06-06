@@ -54,6 +54,8 @@ public final class InventoryWindow {
     private List<Item> items = List.of();
     private boolean showSteve = true;
     private boolean editMode = false;
+    private boolean hideSettingsButton = false;
+    private boolean hideEditButton = false;
 
     public InventoryWindow(Consumer<Item> onActivate, Consumer<Item> onEdit, Runnable onOpenSettings,
                            BiConsumer<SlotAddress, SlotAddress> onMove) {
@@ -136,11 +138,21 @@ public final class InventoryWindow {
         root.getChildren().add(steve);
     }
 
-    /** 원본 InventoryOptionMeters 버튼: 닫기/설정/편집. */
+    /** 원본 InventoryOptionMeters 버튼: 닫기/설정/편집. (설정으로 설정·편집 버튼 숨김 가능) */
     private void addButtons() {
         root.getChildren().add(button("InvClose.png", 648, 16, 44, 44, this::hide));
-        root.getChildren().add(button("setting.png", 535, 256, 70, 70, onOpenSettings));
-        root.getChildren().add(button("edit.png", 614, 261, 60, 60, this::toggleEditMode));
+        if (!hideSettingsButton) {
+            root.getChildren().add(button("setting.png", 535, 256, 70, 70, onOpenSettings));
+        }
+        if (!hideEditButton) {
+            root.getChildren().add(button("edit.png", 614, 261, 60, 60, this::toggleEditMode));
+        }
+    }
+
+    public void setButtonVisibility(boolean hideSettings, boolean hideEdit) {
+        this.hideSettingsButton = hideSettings;
+        this.hideEditButton = hideEdit;
+        rebuild();
     }
 
     private ImageView button(String image, double x, double y, double w, double h, Runnable action) {

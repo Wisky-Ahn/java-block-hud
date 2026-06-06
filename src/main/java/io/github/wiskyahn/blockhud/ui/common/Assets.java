@@ -41,6 +41,13 @@ public final class Assets {
     }
 
     private static Image loadImage(String name) {
+        // 사용자가 고른 절대/파일 경로면 파일에서 직접 로드 (에디터 '이미지 불러오기')
+        if (name.contains("/") || name.contains("\\") || name.matches("(?i)^[a-z]:.*")) {
+            java.io.File file = new java.io.File(name);
+            if (file.isFile()) {
+                return new Image(file.toURI().toString());
+            }
+        }
         for (String dir : IMAGE_DIRS) {
             var url = Assets.class.getResource("/assets/" + dir + "/" + name);
             if (url != null) {

@@ -6,6 +6,7 @@ import io.github.wiskyahn.blockhud.domain.model.ImageOffset;
 import io.github.wiskyahn.blockhud.domain.model.Item;
 import io.github.wiskyahn.blockhud.i18n.LocalizationService;
 import io.github.wiskyahn.blockhud.ui.common.Assets;
+import java.io.File;
 import java.util.function.Consumer;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -20,6 +21,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -80,8 +82,10 @@ public final class EditorWindow {
         VBox form = new VBox(10,
                 title(i18n.get("editor.title")),
                 field(i18n.get("editor.name"), labelField),
-                field(i18n.get("editor.path"), actionField),
-                field(i18n.get("editor.image"), imageField),
+                fieldWithButton(i18n.get("editor.path"), actionField,
+                        i18n.get("editor.browse"), () -> pickFile(actionField, false)),
+                fieldWithButton(i18n.get("editor.image"), imageField,
+                        i18n.get("editor.loadImage"), () -> pickFile(imageField, true)),
                 field(i18n.get("editor.qty"), qty),
                 title(i18n.get("editor.imageAdjust")),
                 offsetRow,
@@ -119,6 +123,27 @@ public final class EditorWindow {
     private VBox field(String labelText, javafx.scene.Node control) {
         VBox box = new VBox(3, label(labelText), control);
         return box;
+    }
+
+    /** 라벨 + (입력 + 버튼) 행. 이미지/경로 선택용. */
+    private VBox fieldWithButton(String labelText, TextField control, String btnText, Runnable onClick) {
+        HBox.setHgrow(control, javafx.scene.layout.Priority.ALWAYS);
+        Button browse = button(btnText, onClick);
+        HBox row = new HBox(6, control, browse);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return new VBox(3, label(labelText), row);
+    }
+
+    private void pickFile(TextField target, boolean imagesOnly) {
+        FileChooser chooser = new FileChooser();
+        if (imagesOnly) {
+            chooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("이미지", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+        }
+        File picked = chooser.showOpenDialog(stage);
+        if (picked != null) {
+            target.setText(picked.getAbsolutePath());
+        }
     }
 
     private Label title(String text) {

@@ -25,6 +25,8 @@ import javafx.util.Duration;
  */
 public final class ClockWindow {
 
+    private boolean use24Hour = true;
+    private boolean hideMeridiem = false;
     private DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
     private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -54,7 +56,18 @@ public final class ClockWindow {
     }
 
     public void setUse24Hour(boolean use24Hour) {
-        timeFormat = DateTimeFormatter.ofPattern(use24Hour ? "HH:mm:ss" : "hh:mm:ss a");
+        this.use24Hour = use24Hour;
+        updateFormat();
+    }
+
+    public void setHideMeridiem(boolean hideMeridiem) {
+        this.hideMeridiem = hideMeridiem;
+        updateFormat();
+    }
+
+    private void updateFormat() {
+        String pattern = use24Hour ? "HH:mm:ss" : (hideMeridiem ? "hh:mm:ss" : "hh:mm:ss a");
+        timeFormat = DateTimeFormatter.ofPattern(pattern);
         update();
     }
 
