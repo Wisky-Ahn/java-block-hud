@@ -10,7 +10,6 @@ import io.github.wiskyahn.blockhud.domain.settings.Settings;
 import io.github.wiskyahn.blockhud.i18n.LocalizationService;
 import io.github.wiskyahn.blockhud.platform.Platforms;
 import io.github.wiskyahn.blockhud.platform.StartupService;
-import io.github.wiskyahn.blockhud.platform.WindowPinService;
 import io.github.wiskyahn.blockhud.service.ActionLauncher;
 import io.github.wiskyahn.blockhud.service.EditorDraft;
 import io.github.wiskyahn.blockhud.service.SystemMetricsService;
@@ -25,13 +24,11 @@ import io.github.wiskyahn.blockhud.ui.hud.InventoryWindow;
 import io.github.wiskyahn.blockhud.ui.modal.ModalService;
 import io.github.wiskyahn.blockhud.ui.settings.SettingsWindow;
 import java.util.Map;
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,19 +215,9 @@ public final class HudController {
         clock.show();
         installShortcuts();
         applySettings();
-        pinToDesktop();
-    }
-
-    /** HUD 창을 바탕화면 레벨에 고정 (원본 ZPos -2 완전 재현). NSWindow 생성 대기 후 적용. */
-    private void pinToDesktop() {
-        WindowPinService pin = Platforms.windowPin();
-        PauseTransition delay = new PauseTransition(Duration.millis(400));
-        delay.setOnFinished(e -> {
-            pin.pinToDesktop("Block HUD — Hotbar");
-            pin.pinToDesktop("Block HUD — Clock");
-            pin.pinToDesktop("Block HUD — Indicators");
-        });
-        delay.play();
+        // 주의: macOS 바탕화면 레벨(kCGDesktopWindowLevel) 고정은 클릭 이벤트를 막는다.
+        // 런처는 상호작용이 핵심이므로 toBack(클릭 가능 + 다른 창 뒤) 방식을 사용한다.
+        // 네이티브 고정(WindowPinService)은 향후 '표시 전용' 옵션으로만 제공 예정.
     }
 
     /** 핫바에 단축키: S=설정, I=인벤토리 토글. */
@@ -259,9 +246,10 @@ public final class HudController {
         inv.setX(screen.getMinX() + (screen.getWidth() - inv.getScene().getWidth()) / 2);
         inv.setY(screen.getMinY() + (screen.getHeight() - inv.getScene().getHeight()) / 2);
 
+        // 인디케이터: 핫바 폭과 동일, 핫바 바로 위
         Stage ind = indicators.stage();
         ind.setX(hotbarX);
-        ind.setY(hotbarY - 180);
+        ind.setY(hotbarY - io.github.wiskyahn.blockhud.ui.hud.IndicatorWindow.WIN_H - 2);
 
         Stage clk = clock.stage();
         clk.setX(screen.getMinX() + (screen.getWidth() - 160) / 2);

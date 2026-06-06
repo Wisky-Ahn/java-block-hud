@@ -7,31 +7,28 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 
 /**
- * 마크 인디케이터 게이지 한 줄. {@code empty.png}(빈 바) 위에 {@code fill.png}를 비율만큼
- * 클리핑해 표시한다. 원본 gauge meter(fill/empty 스왑) 대체. (DESIGN.md §8.2)
- *
- * <p>원본 아이콘 스트립은 586×65 (10칸). {@code scale}로 표시 크기를 조절한다.
+ * 마크 인디케이터 게이지 한 줄. {@code empty.png} 위에 {@code fill.png}를 비율만큼 클리핑.
+ * 표시 폭(displayWidth)을 받고 높이는 <b>실제 이미지 종횡비</b>로 계산한다.
+ * (하트/갑옷/배고픔/공기 586×65, 경험치 1500×41로 서로 다름 — DESIGN.md §8.2)
  */
 public final class IndicatorBar extends Pane {
 
-    private static final double NATIVE_W = 586;
-    private static final double NATIVE_H = 65;
-
     private final double width;
     private final double height;
-    private final ImageView fillView;
     private final Rectangle clip;
 
-    public IndicatorBar(String dir, double scale) {
-        this.width = NATIVE_W * scale;
-        this.height = NATIVE_H * scale;
-        setPrefSize(width, height);
-
+    public IndicatorBar(String dir, double displayWidth) {
         Image empty = Assets.imageAt("indicators/" + dir + "/empty.png");
         Image fill = Assets.imageAt("indicators/" + dir + "/fill.png");
 
+        double nativeW = fill != null ? fill.getWidth() : 586;
+        double nativeH = fill != null ? fill.getHeight() : 65;
+        this.width = displayWidth;
+        this.height = displayWidth * (nativeH / nativeW);
+        setPrefSize(width, height);
+
         ImageView emptyView = imageView(empty);
-        fillView = imageView(fill);
+        ImageView fillView = imageView(fill);
 
         clip = new Rectangle(0, 0, width, height);
         fillView.setClip(clip);
@@ -48,9 +45,11 @@ public final class IndicatorBar extends Pane {
         return v;
     }
 
-    /** 0..1 비율로 채움 폭 설정. */
+    public double barHeight() {
+        return height;
+    }
+
     public void setRatio(double ratio) {
-        double r = Math.max(0, Math.min(1, ratio));
-        clip.setWidth(width * r);
+        clip.setWidth(width * Math.max(0, Math.min(1, ratio)));
     }
 }
